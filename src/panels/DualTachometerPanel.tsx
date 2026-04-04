@@ -1,120 +1,56 @@
-import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
-import { ReactElement, useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { PanelExtensionContext } from "@foxglove/extension";
 
-import { DualTachometer } from "../instruments/DualTachometer";
-import { useInstrumentPanel } from "../useInstrumentPanel";
+import { Config, createDualGaugePanel } from "./DualGaugePanel";
 
-type Config = {
-  engineRpmPath: string;
-  rotorRpmPath: string;
-  engineMaxRpm: number;
-  rotorMaxRpm: number;
+const tachometerDefaults: Config = {
+  leftPath: "",
+  rightPath: "",
+  leftNormalize: true,
+  leftMin: 0,
+  leftMax: 5800,
+  leftNormalizeOutputMin: 0,
+  leftNormalizeOutputMax: 100,
+  leftExpr: "",
+  rightNormalize: true,
+  rightMin: 0,
+  rightMax: 600,
+  rightNormalizeOutputMin: 0,
+  rightNormalizeOutputMax: 100,
+  rightExpr: "",
+  leftClampMin: 50,
+  leftClampMax: 110,
+  leftTickCount: 7,
+  leftTickPrecision: 0,
+  leftSubTicks: true,
+  rightClampMin: 50,
+  rightClampMax: 110,
+  rightTickCount: 7,
+  rightTickPrecision: 0,
+  rightSubTicks: true,
+  topLabel: "TACH",
+  bottomLabel: "% RPM",
+  leftLabel: "ENG",
+  leftLabelVertical: true,
+  leftTickLabelsStr: "",
+  leftTickPositionsStr: "",
+  rightLabel: "ROT",
+  rightLabelVertical: true,
+  rightTickLabelsStr: "",
+  rightTickPositionsStr: "",
+  leftZoneCount: 3,
+  leftZone1Start: 96.67,  leftZone1End: 103.33, leftZone1Color: "#008000",
+  leftZone2Start: 90,     leftZone2End: 96.67,  leftZone2Color: "#ffff00",
+  leftZone3Start: 103.33, leftZone3End: 110,    leftZone3Color: "#ff0000",
+  leftZone4Start: 0,      leftZone4End: 0,      leftZone4Color: "#ffffff",
+  leftZone5Start: 0,      leftZone5End: 0,      leftZone5Color: "#ffffff",
+  rightZoneCount: 3,
+  rightZone1Start: 96.67,  rightZone1End: 103.33, rightZone1Color: "#008000",
+  rightZone2Start: 90,     rightZone2End: 96.67,  rightZone2Color: "#ffff00",
+  rightZone3Start: 103.33, rightZone3End: 110,    rightZone3Color: "#ff0000",
+  rightZone4Start: 0,      rightZone4End: 0,      rightZone4Color: "#ffffff",
+  rightZone5Start: 0,      rightZone5End: 0,      rightZone5Color: "#ffffff",
 };
-
-const defaultConfig: Config = {
-  engineRpmPath: "",
-  rotorRpmPath: "",
-  engineMaxRpm: 5800, // Rotax 915 IS: 100% RPM
-  rotorMaxRpm: 600,   // HC-02 main rotor: 100% RPM
-};
-
-function DualTachometerPanel({ context }: { context: PanelExtensionContext }): ReactElement {
-  const [config, setConfig] = useState<Config>(() => ({
-    ...defaultConfig,
-    ...(context.initialState as Partial<Config>),
-  }));
-
-  const { getValue, containerRef, size } = useInstrumentPanel(context, [
-    config.engineRpmPath,
-    config.rotorRpmPath,
-  ]);
-
-  const engineRpm = getValue(config.engineRpmPath);
-  const rotorRpm = getValue(config.rotorRpmPath);
-
-  // Convert raw RPM to % RPM (0–110+ range)
-  const enginePct = engineRpm != null ? (engineRpm / config.engineMaxRpm) * 100 : undefined;
-  const rotorPct = rotorRpm != null ? (rotorRpm / config.rotorMaxRpm) * 100 : undefined;
-
-  useEffect(() => {
-    context.updatePanelSettingsEditor({
-      actionHandler: (action: SettingsTreeAction) => {
-        if (action.action === "update") {
-          const { path, value } = action.payload;
-          const key = path[1] as keyof Config;
-          setConfig((prev) => {
-            const next = {
-              ...prev,
-              [key]:
-                key === "engineMaxRpm" || key === "rotorMaxRpm"
-                  ? Number(value)
-                  : (value as string),
-            };
-            context.saveState(next);
-            return next;
-          });
-        }
-      },
-      nodes: {
-        general: {
-          label: "General",
-          fields: {
-            engineRpmPath: {
-              label: "Engine RPM topic",
-              input: "messagepath",
-              value: config.engineRpmPath,
-            },
-            rotorRpmPath: {
-              label: "Rotor RPM topic",
-              input: "messagepath",
-              value: config.rotorRpmPath,
-            },
-          },
-        },
-        scaling: {
-          label: "Scaling (RPM = 100%)",
-          fields: {
-            engineMaxRpm: {
-              label: "Engine max RPM",
-              input: "number",
-              value: config.engineMaxRpm,
-              min: 1,
-              step: 100,
-            },
-            rotorMaxRpm: {
-              label: "Rotor max RPM",
-              input: "number",
-              value: config.rotorMaxRpm,
-              min: 1,
-              step: 10,
-            },
-          },
-        },
-      },
-    });
-  }, [context, config]);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        height: "100%",
-      }}
-    >
-      <DualTachometer enginePct={enginePct} rotorPct={rotorPct} size={size} />
-    </div>
-  );
-}
 
 export function initDualTachometerPanel(context: PanelExtensionContext): () => void {
-  const root = createRoot(context.panelElement);
-  root.render(<DualTachometerPanel context={context} />);
-  return () => {
-    root.unmount();
-  };
+  return createDualGaugePanel(tachometerDefaults)(context);
 }

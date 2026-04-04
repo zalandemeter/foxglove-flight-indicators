@@ -12,7 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Tachometer** panel — single-needle RPM gauge; 0–8000 RPM range with a 320° sweep, configurable via a single message path field
-- **Dual Tachometer** panel — helicopter-style split tachometer showing engine % RPM (left needle) and rotor % RPM (right needle) on a shared 50–110% scale with a ±45° sweep per side; configurable engine and rotor max-RPM reference values (defaults: 5800 RPM engine / 600 RPM rotor) for automatic % conversion
+- **Dual Gauge** panel — generic dual-needle gauge with fully configurable data pipeline and display; all gauge-type panels are thin wrappers supplying default config to the shared `createDualGaugePanel` factory
+- **Dual Tachometer** panel — helicopter-style split tachometer (engine % RPM left, rotor % RPM right); defaults: 5800 RPM engine / 600 RPM rotor, 50–110% display range
+- **Dual Fuel Gauge** panel — left/right tank quantity gauge; normalizes raw kg values (0–50) to 0–1 display range with E / ½ / F tick labels and red/yellow/green zones
+- **Dual Oil Gauge** panel — oil temperature (°C, left) and oil pressure (PSI, right) with custom tick positions and color zones matching typical limits
+
+#### Dual Gauge configurable features
+- **Data** sub-node per side: optional expression transform (`x`-variable, powered by `expr-eval`), optional normalization with configurable input and output range, always-on clamping with configurable min/max (clamp range also defines the display range)
+- **Display** sub-node per side: tick count, tick precision, custom tick positions (csv, must match tick count), custom tick labels (csv, must match tick count), sub-tick toggle, up to 5 color arc zones
+- **Labels**: top, bottom (csv — 1 value centered, 2 values split left/right), left/right labels with optional vertical character stacking and length-aware font scaling
 
 ### Changed
 
