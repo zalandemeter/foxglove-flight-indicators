@@ -17,7 +17,7 @@ const INSTRUMENT_CSS = `
 `;
 
 let cssInjected = false;
-function ensureCss(): void {
+export function ensureCss(): void {
   if (cssInjected) return;
   const style = document.createElement("style");
   style.textContent = INSTRUMENT_CSS;

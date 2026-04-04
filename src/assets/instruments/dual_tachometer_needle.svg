@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+    y="0px" width="400px" height="400px" viewBox="0 0 400 400" enable-background="new 0 0 400 400" xml:space="preserve">
+
+  <filter filterUnits="objectBoundingBox" id="dt-needle-shadow">
+    <feGaussianBlur stdDeviation="5" result="blur" in="SourceAlpha"/>
+    <feOffset dx="0" dy="0" result="offsetBlur" in="blur"/>
+    <feMerge>
+      <feMergeNode in="offsetBlur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+
+  <!-- White bar -->
+  <polygon
+  fill="#FFFFFF"
+  stroke="#B2B2B2"
+  stroke-width="0.5"
+  stroke-miterlimit="10"
+  points="50,196.5 155,197 162,200 155,203 50,203.5"
+/>
+
+  <!-- Gray needle head: circle + right overhang.
+       Left edge of circle sits at x=50 (the pivot point). -->
+  <g filter="url(#dt-needle-shadow)">
+    <path
+      fill="#232323"
+      stroke="#353535"
+      stroke-width="0.5"
+      stroke-miterlimit="10"
+      d="M40,196.417
+         c1.51-4.271,5.573-7.337,10.362-7.337
+         s8.852,3.065,10.362,7.337
+         h5.804 v7.167 h-5.745
+         c-1.464,4.355-5.572,7.496-10.42,7.496
+         s-8.956-3.141-10.42-7.496
+         Z"
+    />
+  </g>
+
+</svg>

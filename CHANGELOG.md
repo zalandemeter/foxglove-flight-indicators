@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Tachometer** panel — single-needle RPM gauge; 0–8000 RPM range with a 320° sweep, configurable via a single message path field
+- **Dual Tachometer** panel — helicopter-style split tachometer showing engine % RPM (left needle) and rotor % RPM (right needle) on a shared 50–110% scale with a ±45° sweep per side; configurable engine and rotor max-RPM reference values (defaults: 5800 RPM engine / 600 RPM rotor) for automatic % conversion
+
+### Changed
+
+- `ensureCss` in `BundledFlightIndicators.ts` is now exported so new instrument components can share the single CSS injection guard
+
+---
+
 ## [1.0.0] - 2026-04-03
 
 Initial public release.
