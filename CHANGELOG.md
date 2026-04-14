@@ -11,20 +11,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Tachometer** panel — single-needle RPM gauge; 0–8000 RPM range with a 320° sweep, configurable via a single message path field
-- **Dual Gauge** panel — generic dual-needle gauge with fully configurable data pipeline and display; all gauge-type panels are thin wrappers supplying default config to the shared `createDualGaugePanel` factory
+- **Gauge** panel — generic single-needle center-pivot gauge with fully dynamic markings; all single-gauge panels (Tachometer, Airspeed) are thin wrappers supplying default config to the shared `createGaugePanel` factory
+- **Tachometer** panel — 0–8000 RPM with 9 ticks (0–8 × 1000), green/yellow/red zones, dynamic labels "RPM" / "x 1000"
+- **Airspeed** panel — 0–160 km/h with 9 ticks, green/yellow/red zones, detailed sub-ticks, dynamic labels "AIRSPEED" / "KM/H"
+- **Dual Gauge** panel — generic dual-needle gauge with fully configurable data pipeline and display; all dual-gauge panels are thin wrappers supplying default config to the shared `createDualGaugePanel` factory
 - **Dual Tachometer** panel — helicopter-style split tachometer (engine % RPM left, rotor % RPM right); defaults: 5800 RPM engine / 600 RPM rotor, 50–110% display range
 - **Dual Fuel Gauge** panel — left/right tank quantity gauge; normalizes raw kg values (0–50) to 0–1 display range with E / ½ / F tick labels and red/yellow/green zones
 - **Dual Oil Gauge** panel — oil temperature (°C, left) and oil pressure (PSI, right) with custom tick positions and color zones matching typical limits
+- `gauge_mechanics.svg` — blank gauge face (dark circle) for all single-gauge panels; face markings are now fully dynamic
+- `gaugeShared.ts` — shared module extracting `drawTickLines`, `drawColorArcs`, `buildZones`, `makeZoneChildren`, expression helpers, and tick/zone validation from DualGauge into a common module used by both Gauge and DualGauge
+
+#### Single Gauge configurable features
+- **Data**: optional expression transform (`x`-variable, powered by `expr-eval`), optional normalization with configurable input/output range, clamping with configurable min/max (clamp range defines display range)
+- **Display**: tick count (0–20), tick precision, custom tick positions/labels (csv), sub-ticks (None / Simple / Detailed), up to 7 color arc zones, full circle toggle (360° vs 320° sweep)
+- **Labels**: configurable top and bottom text
 
 #### Dual Gauge configurable features
 - **Data** sub-node per side: optional expression transform (`x`-variable, powered by `expr-eval`), optional normalization with configurable input and output range, always-on clamping with configurable min/max (clamp range also defines the display range)
-- **Display** sub-node per side: tick count, tick precision, custom tick positions (csv, must match tick count), custom tick labels (csv, must match tick count), sub-tick toggle, up to 5 color arc zones
+- **Display** sub-node per side: tick count, tick precision, custom tick positions (csv, must match tick count), custom tick labels (csv, must match tick count), sub-ticks (None / Simple / Detailed), up to 7 color arc zones
 - **Labels**: top, bottom (csv — 1 value centered, 2 values split left/right), left/right labels with optional vertical character stacking and length-aware font scaling
 
 ### Changed
 
 - `ensureCss` in `BundledFlightIndicators.ts` is now exported so new instrument components can share the single CSS injection guard
+- Sub-ticks changed from boolean toggle to 3-mode select: None, Simple (1 mid-tick), Detailed (3 ticks: short/medium/short at ¼, ½, ¾)
+- Maximum color zones increased from 5 to 7 for all gauge types
+- `toDataUrl` and `mirrorSvgX` moved from `BundledFlightIndicators.ts` to `utils.ts` for reuse
+- Tachometer and Airspeed panels no longer use baked-in SVG face markings; all ticks, labels, and zones are now rendered dynamically and fully configurable through settings
+- SVG text labels ("RPM", "× 1000", "AIRSPEED", "KM / H") removed from `tachometer_mechanics.svg` and `speed_mechanics.svg`; replaced by dynamic top/bottom label settings
+- Color arc rendering now correctly handles arcs spanning >180° (large-arc flag) and full 360° arcs (two-semicircle fallback)
+- Config version migration (v3): existing panels auto-reset to new defaults on first load
+
+### Fixed
+
+- Tick and arc positioning on single gauges: added 180° offset to align cos/sin placement with CSS needle rotation (needle SVG points left)
+- Division by zero when tick count is 1 (`i / (count - 1)` guard)
+- Full-circle mode: first tick label hidden when it would overlap the last at 12 o'clock
 
 ---
 

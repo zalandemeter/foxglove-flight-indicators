@@ -175,7 +175,5 @@
         <text class="numerical" x="0" y="0">4</text>
         <text class="numerical" x="0" y="0">5</text>
 
-        <text x="0" y="-10%">RPM</text>
-        <text x="0" y="10%">× 1000</text>
     </g>
 </svg>

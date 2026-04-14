@@ -4,18 +4,8 @@ import { ensureCss } from "../BundledFlightIndicators";
 import dualGaugeMechanicsRaw from "../assets/instruments/dual_gauge_mechanics.svg?raw";
 import dualGaugeNeedleRaw from "../assets/instruments/dual_gauge_needle.svg?raw";
 import fiCircleRaw from "../assets/instruments/fi_circle.svg?raw";
-
-function toDataUrl(svgRaw: string): string {
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgRaw)}`;
-}
-
-function mirrorSvgX(svgRaw: string): string {
-  return svgRaw.replace(
-    /(<svg[^>]*>)([\s\S]*)(<\/svg>\s*$)/,
-    (_, open, body, close) =>
-      `${open}<g transform="scale(-1,1) translate(-400,0)">${body}</g>${close}`,
-  );
-}
+import { ColorZone, SubTickMode, drawTickLines, drawColorArcs } from "../gaugeShared";
+import { toDataUrl, mirrorSvgX } from "../utils";
 
 const FACE_URL     = toDataUrl(dualGaugeMechanicsRaw);
 const NEEDLE_L_URL = toDataUrl(dualGaugeNeedleRaw);
@@ -47,16 +37,13 @@ const CIRCLE_URL   = toDataUrl(fiCircleRaw);
 //                  right gauge sweep=1 (CW in SVG / theta increasing)
 
 const MAX_TICKS = 20;
-const ARC_R     = 145;
 
 // Returns the scale factor (out of 400) for a side label based on its character count.
 // 1 char → 22, 2–3 chars → 18, 4–7 chars → 14.
 function sideLabelScale(text: string): number {
   const len = text.length;
-  if (len <= 2) return 22;
-  if (len <= 3) return 20;
-  if (len <= 5) return 18;
-  if (len <= 7) return 16;
+  if (len <= 2) return 18;
+  if (len <= 5) return 16;
   return 14;
 }
 
@@ -69,84 +56,6 @@ function rightAngleDeg(v: number, min: number, max: number): number {
   return 135 + ((v - min) / (max - min)) * 90;
 }
 
-// Draw major + minor tick lines into a <g> element.
-// majorAngles: one angle (degrees) per major tick; minor ticks at midpoint between adjacent majors.
-function drawTickLines(
-  g: SVGGElement,
-  majorAngles: number[],
-  pivotX: number,
-  pivotY: number,
-  showSubTicks: boolean,
-): void {
-  while (g.firstChild) g.removeChild(g.firstChild);
-  if (majorAngles.length < 2) return;
-
-  function addLine(x1: number, y1: number, x2: number, y2: number, sw: number): void {
-    const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    ln.setAttribute("x1", x1.toFixed(2)); ln.setAttribute("y1", y1.toFixed(2));
-    ln.setAttribute("x2", x2.toFixed(2)); ln.setAttribute("y2", y2.toFixed(2));
-    ln.setAttribute("stroke", "white");
-    ln.setAttribute("stroke-width", String(sw));
-    ln.setAttribute("stroke-linecap", "butt");
-    g.appendChild(ln);
-  }
-
-  for (const deg of majorAngles) {
-    const rad = (deg * Math.PI) / 180;
-    addLine(pivotX + 129 * Math.cos(rad), pivotY + 129 * Math.sin(rad),
-            pivotX + 150 * Math.cos(rad), pivotY + 150 * Math.sin(rad), 4);
-  }
-  if (showSubTicks) {
-    for (let i = 0; i < majorAngles.length - 1; i++) {
-      const mid = (majorAngles[i]! + majorAngles[i + 1]!) / 2;
-      const rad = (mid * Math.PI) / 180;
-      addLine(pivotX + 135 * Math.cos(rad), pivotY + 135 * Math.sin(rad),
-              pivotX + 150 * Math.cos(rad), pivotY + 150 * Math.sin(rad), 2);
-    }
-  }
-}
-
-type ColorZone = { color: string; start: number; end: number };
-
-// Draw color arc zones into a <g> element. Zones rendered in order (last = top).
-// Arcs are clamped to [displayMin, displayMax]; zero-length zones are skipped.
-// Left gauge: sweep=0 (SVG CCW), Right gauge: sweep=1 (SVG CW).
-function drawColorArcs(
-  g: SVGGElement,
-  displayMin: number,
-  displayMax: number,
-  pivotX: number,
-  pivotY: number,
-  isLeft: boolean,
-  zones: ColorZone[],
-): void {
-  while (g.firstChild) g.removeChild(g.firstChild);
-  const range = displayMax - displayMin;
-  if (range <= 0) return;
-
-  const sweep     = isLeft ? 0 : 1;
-  const angleFn   = isLeft ? leftAngleDeg : rightAngleDeg;
-
-  for (const { color, start, end } of zones) {
-    const cStart = Math.max(displayMin, Math.min(displayMax, start));
-    const cEnd   = Math.max(displayMin, Math.min(displayMax, end));
-    if (cEnd <= cStart) continue;
-
-    const a1 = (angleFn(cStart, displayMin, displayMax) * Math.PI) / 180;
-    const a2 = (angleFn(cEnd,   displayMin, displayMax) * Math.PI) / 180;
-    const x1 = pivotX + ARC_R * Math.cos(a1);
-    const y1 = pivotY + ARC_R * Math.sin(a1);
-    const x2 = pivotX + ARC_R * Math.cos(a2);
-    const y2 = pivotY + ARC_R * Math.sin(a2);
-
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${ARC_R} ${ARC_R} 0 0 ${sweep} ${x2.toFixed(2)} ${y2.toFixed(2)}`);
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke", color);
-    path.setAttribute("stroke-width", "10");
-    g.appendChild(path);
-  }
-}
 
 type Props = {
   leftPct: number | undefined;
@@ -165,7 +74,7 @@ type Props = {
   leftClampMax: number;
   leftTickPrecision: number;
   leftTickCount: number;
-  leftSubTicks: boolean;
+  leftSubTicks: SubTickMode;
   leftTickLabels?: string[];
   leftTickPositions?: number[];
   leftZones: ColorZone[];
@@ -176,7 +85,7 @@ type Props = {
   rightClampMax: number;
   rightTickPrecision: number;
   rightTickCount: number;
-  rightSubTicks: boolean;
+  rightSubTicks: SubTickMode;
   rightTickLabels?: string[];
   rightTickPositions?: number[];
   rightZones: ColorZone[];
@@ -349,7 +258,7 @@ export function DualGauge({
         instrument.style.width  = `${n}px`;
         instrument.style.height = `${n}px`;
       }
-      const cornerFs = `${(n * 22 / 400).toFixed(1)}px`;
+      const cornerFs = `${(n * 18 / 400).toFixed(1)}px`;
       const tickFs   = `${(n * 18 / 400).toFixed(1)}px`;
       if (labelTopRef.current) labelTopRef.current.style.fontSize = cornerFs;
       if (labelLeftRef.current)  labelLeftRef.current.style.fontSize  = `${(n * sideLabelScale(leftLabel)  / 400).toFixed(1)}px`;
@@ -429,14 +338,14 @@ export function DualGauge({
   const rightTickPositionsKey = JSON.stringify(rightTickPositions);
   useEffect(() => {
     if (!leftArcGRef.current) return;
-    drawColorArcs(leftArcGRef.current, leftDisplayMin, leftDisplayMax, 30, 200, true, leftZones);
+    drawColorArcs(leftArcGRef.current, leftDisplayMin, leftDisplayMax, 30, 200, leftAngleDeg, 0, leftZones);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leftDisplayMin, leftDisplayMax, leftZonesKey]);
 
   // ── Right color arcs ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!rightArcGRef.current) return;
-    drawColorArcs(rightArcGRef.current, rightDisplayMin, rightDisplayMax, 370, 200, false, rightZones);
+    drawColorArcs(rightArcGRef.current, rightDisplayMin, rightDisplayMax, 370, 200, rightAngleDeg, 1, rightZones);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rightDisplayMin, rightDisplayMax, rightZonesKey]);
 

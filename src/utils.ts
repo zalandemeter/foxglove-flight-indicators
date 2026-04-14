@@ -51,6 +51,18 @@ export function getValueAtPath(obj: unknown, fieldPath: string): number | undefi
   return current;
 }
 
+export function toDataUrl(svgRaw: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgRaw)}`;
+}
+
+export function mirrorSvgX(svgRaw: string): string {
+  return svgRaw.replace(
+    /(<svg[^>]*>)([\s\S]*)(<\/svg>\s*$)/,
+    (_, open, body, close) =>
+      `${open}<g transform="scale(-1,1) translate(-400,0)">${body}</g>${close}`,
+  );
+}
+
 function tokenizePath(path: string): (string | number)[] {
   const tokens: (string | number)[] = [];
   let remaining = path;

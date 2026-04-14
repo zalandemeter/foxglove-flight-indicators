@@ -7,6 +7,7 @@ import { initDualFuelGaugePanel } from "./panels/DualFuelGaugePanel";
 import { initDualOilGaugePanel } from "./panels/DualOilGaugePanel";
 import { initDualGaugePanel } from "./panels/DualGaugePanel";
 import { initDualTachometerPanel } from "./panels/DualTachometerPanel";
+import { initGaugePanel } from "./panels/GaugePanel";
 import { initHeadingIndicatorPanel } from "./panels/HeadingIndicatorPanel";
 import { initTachometerPanel } from "./panels/TachometerPanel";
 import { initTurnCoordinatorPanel } from "./panels/TurnCoordinatorPanel";
@@ -20,6 +21,7 @@ export function activate(extensionContext: ExtensionContext): void {
   extensionContext.registerPanel({ name: "Dual Oil Gauge", initPanel: initDualOilGaugePanel });
   extensionContext.registerPanel({ name: "Dual Gauge", initPanel: initDualGaugePanel });
   extensionContext.registerPanel({ name: "Dual Tachometer", initPanel: initDualTachometerPanel });
+  extensionContext.registerPanel({ name: "Gauge", initPanel: initGaugePanel });
   extensionContext.registerPanel({ name: "Heading Indicator", initPanel: initHeadingIndicatorPanel });
   extensionContext.registerPanel({ name: "Tachometer", initPanel: initTachometerPanel });
   extensionContext.registerPanel({ name: "Turn Coordinator", initPanel: initTurnCoordinatorPanel });

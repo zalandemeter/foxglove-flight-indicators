@@ -1,62 +1,39 @@
-import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
-import { ReactElement, useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { PanelExtensionContext } from "@foxglove/extension";
 
-import { Tachometer } from "../instruments/Tachometer";
-import { useInstrumentPanel } from "../useInstrumentPanel";
+import gaugeMechanicsRaw from "../assets/instruments/gauge_mechanics.svg?raw";
+import { toDataUrl } from "../utils";
+import { GaugeConfig, createGaugePanel } from "./GaugePanel";
 
-type Config = {
-  rpmPath: string;
+const FACE_URL = toDataUrl(gaugeMechanicsRaw);
+
+const tachometerDefaults: GaugeConfig = {
+  valuePath: "",
+  normalize: false,
+  min: 0,
+  max: 8000,
+  normalizeOutputMin: 0,
+  normalizeOutputMax: 100,
+  expr: "",
+  clampMin: 0,
+  clampMax: 8000,
+  tickCount: 9,
+  tickPrecision: 0,
+  subTicks: "simple",
+  tickLabelsStr: "0,1,2,3,4,5,6,7,8",
+  tickPositionsStr: "",
+  fullSweep: false,
+  zoneCount: 3,
+  zone1Start: 0,    zone1End: 6000, zone1Color: "#008000",
+  zone2Start: 6000, zone2End: 7000, zone2Color: "#ffff00",
+  zone3Start: 7000, zone3End: 8000, zone3Color: "#ff0000",
+  zone4Start: 0, zone4End: 0, zone4Color: "#ffffff",
+  zone5Start: 0, zone5End: 0, zone5Color: "#ffffff",
+  zone6Start: 0, zone6End: 0, zone6Color: "#ffffff",
+  zone7Start: 0, zone7End: 0, zone7Color: "#ffffff",
+  topLabel: "RPM",
+  bottomLabel: "x 1000",
 };
-
-const defaultConfig: Config = {
-  rpmPath: "",
-};
-
-function TachometerPanel({ context }: { context: PanelExtensionContext }): ReactElement {
-  const [config, setConfig] = useState<Config>(() => ({
-    ...defaultConfig,
-    ...(context.initialState as Partial<Config>),
-  }));
-
-  const { getValue, containerRef, size } = useInstrumentPanel(context, [config.rpmPath]);
-  const rpm = getValue(config.rpmPath);
-
-  useEffect(() => {
-    context.updatePanelSettingsEditor({
-      actionHandler: (action: SettingsTreeAction) => {
-        if (action.action === "update") {
-          const { path, value } = action.payload;
-          setConfig((prev) => {
-            const next = { ...prev, [path[1] as keyof Config]: value as string };
-            context.saveState(next);
-            return next;
-          });
-        }
-      },
-      nodes: {
-        general: {
-          label: "General",
-          fields: {
-            rpmPath: { label: "RPM", input: "messagepath", value: config.rpmPath },
-          },
-        },
-      },
-    });
-  }, [context, config]);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}
-    >
-      <Tachometer rpm={rpm} size={size} />
-    </div>
-  );
-}
 
 export function initTachometerPanel(context: PanelExtensionContext): () => void {
-  const root = createRoot(context.panelElement);
-  root.render(<TachometerPanel context={context} />);
-  return () => { root.unmount(); };
+  return createGaugePanel(tachometerDefaults, FACE_URL)(context);
 }

@@ -1,4 +1,5 @@
 import FlightIndicators from "flight-indicators-js";
+import { toDataUrl } from "./utils";
 
 // Inlined from flight-indicators-js/css/flight-indicators.css (MIT).
 // Injected once into the document head to avoid a dependency on style-loader.
@@ -42,10 +43,6 @@ import horizonMechanics from "./assets/instruments/horizon_mechanics.svg?raw";
 import speedMechanics from "./assets/instruments/speed_mechanics.svg?raw";
 import turnCoordinator from "./assets/instruments/turn_coordinator.svg?raw";
 import verticalMechanics from "./assets/instruments/vertical_mechanics.svg?raw";
-
-function toDataUrl(svgRaw: string): string {
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgRaw)}`;
-}
 
 const SVG_DATA_URLS: Record<string, string> = {
   "altitude_pressure.svg": toDataUrl(altitudePressure),

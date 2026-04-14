@@ -1,62 +1,39 @@
-import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
-import { ReactElement, useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
-import { Airspeed } from "../instruments/Airspeed";
+import { PanelExtensionContext } from "@foxglove/extension";
 
-import { useInstrumentPanel } from "../useInstrumentPanel";
+import gaugeMechanicsRaw from "../assets/instruments/gauge_mechanics.svg?raw";
+import { toDataUrl } from "../utils";
+import { GaugeConfig, createGaugePanel } from "./GaugePanel";
 
-type Config = {
-  speedPath: string;
+const FACE_URL = toDataUrl(gaugeMechanicsRaw);
+
+const airspeedDefaults: GaugeConfig = {
+  valuePath: "",
+  normalize: false,
+  min: 0,
+  max: 160,
+  normalizeOutputMin: 0,
+  normalizeOutputMax: 100,
+  expr: "",
+  clampMin: 0,
+  clampMax: 160,
+  tickCount: 9,
+  tickPrecision: 0,
+  subTicks: "detailed",
+  tickLabelsStr: "",
+  tickPositionsStr: "",
+  fullSweep: false,
+  zoneCount: 3,
+  zone1Start: 40,  zone1End: 120, zone1Color: "#008000",
+  zone2Start: 120, zone2End: 140, zone2Color: "#ffff00",
+  zone3Start: 140, zone3End: 160, zone3Color: "#ff0000",
+  zone4Start: 0, zone4End: 0, zone4Color: "#ffffff",
+  zone5Start: 0, zone5End: 0, zone5Color: "#ffffff",
+  zone6Start: 0, zone6End: 0, zone6Color: "#ffffff",
+  zone7Start: 0, zone7End: 0, zone7Color: "#ffffff",
+  topLabel: "AIRSPEED",
+  bottomLabel: "KM/H",
 };
-
-const defaultConfig: Config = {
-  speedPath: "",
-};
-
-function AirspeedPanel({ context }: { context: PanelExtensionContext }): ReactElement {
-  const [config, setConfig] = useState<Config>(() => ({
-    ...defaultConfig,
-    ...(context.initialState as Partial<Config>),
-  }));
-
-  const { getValue, containerRef, size } = useInstrumentPanel(context, [config.speedPath]);
-  const speed = getValue(config.speedPath);
-
-  useEffect(() => {
-    context.updatePanelSettingsEditor({
-      actionHandler: (action: SettingsTreeAction) => {
-        if (action.action === "update") {
-          const { path, value } = action.payload;
-          setConfig((prev) => {
-            const next = { ...prev, [path[1] as keyof Config]: value as string };
-            context.saveState(next);
-            return next;
-          });
-        }
-      },
-      nodes: {
-        general: {
-          label: "General",
-          fields: {
-            speedPath: { label: "Speed (knots)", input: "messagepath", value: config.speedPath },
-          },
-        },
-      },
-    });
-  }, [context, config]);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}
-    >
-      <Airspeed speed={speed} size={size} />
-    </div>
-  );
-}
 
 export function initAirspeedPanel(context: PanelExtensionContext): () => void {
-  const root = createRoot(context.panelElement);
-  root.render(<AirspeedPanel context={context} />);
-  return () => { root.unmount(); };
+  return createGaugePanel(airspeedDefaults, FACE_URL)(context);
 }

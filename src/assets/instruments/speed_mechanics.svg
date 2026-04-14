@@ -307,7 +307,5 @@
         <text class="numerical" x="0" y="0">80</text>
         <text class="numerical" x="0" y="0">100</text>
 
-        <text x="0" y="-10%">AIRSPEED</text>
-        <text x="0" y="10%">KM / H</text>
     </g>
 </svg>
