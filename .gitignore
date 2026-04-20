@@ -106,5 +106,8 @@ dist
 # Build output
 www/js/*
 
+# Preview tool output
+preview-output/
+
 # MacOS
 .DS_Store

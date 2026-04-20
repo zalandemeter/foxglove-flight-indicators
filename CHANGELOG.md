@@ -40,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tachometer and Airspeed panels no longer use baked-in SVG face markings; all ticks, labels, and zones are now rendered dynamically and fully configurable through settings
 - SVG text labels ("RPM", "× 1000", "AIRSPEED", "KM / H") removed from `tachometer_mechanics.svg` and `speed_mechanics.svg`; replaced by dynamic top/bottom label settings
 - Color arc rendering now correctly handles arcs spanning >180° (large-arc flag) and full 360° arcs (two-semicircle fallback)
-- Config version migration (v3): existing panels auto-reset to new defaults on first load
 
 ### Fixed
 

@@ -42,7 +42,6 @@ export type GaugeConfig = {
   fullSweep: boolean;
   topLabel: string;
   bottomLabel: string;
-  _v?: number;
 };
 
 const numericKeys = new Set<keyof GaugeConfig>([
@@ -70,13 +69,8 @@ function GaugePanelImpl({
   faceUrl: string;
 }): ReactElement {
   const [config, setConfig] = useState<GaugeConfig>(() => {
-    const saved = (context.initialState ?? {}) as Partial<GaugeConfig> & { _v?: number };
+    const saved = (context.initialState ?? {}) as Partial<GaugeConfig>;
     const base = { ...defaultConfig, ...saved };
-    if (!saved._v || saved._v < 3) {
-      // v3: all faces blank, ticks/zones/labels fully dynamic — reset all to defaults
-      Object.assign(base, defaultConfig);
-      base._v = 3;
-    }
     context.saveState(base);
     return base;
   });
