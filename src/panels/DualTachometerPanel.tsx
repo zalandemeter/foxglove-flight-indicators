@@ -53,6 +53,7 @@ const tachometerDefaults: Config = {
   rightZone5Start: 0,      rightZone5End: 0,      rightZone5Color: "#ffffff",
   rightZone6Start: 0,      rightZone6End: 0,      rightZone6Color: "#ffffff",
   rightZone7Start: 0,      rightZone7End: 0,      rightZone7Color: "#ffffff",
+  staleCheck: true,
 };
 
 export function initDualTachometerPanel(context: PanelExtensionContext): () => void {

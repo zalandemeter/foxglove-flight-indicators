@@ -9,8 +9,8 @@ import {
   parseTickLabels, parseTickPositions,
   exprError, applyExpr,
   tickLabelsError, tickPositionsError,
-} from "../gaugeShared";
-import { useInstrumentPanel } from "../useInstrumentPanel";
+} from "../instrumentShared";
+import { STALE_STYLE, useInstrumentPanel } from "../useInstrumentPanel";
 import { toDataUrl } from "../utils";
 import gaugeMechanicsRaw from "../assets/instruments/gauge_mechanics.svg?raw";
 
@@ -42,6 +42,7 @@ export type GaugeConfig = {
   fullSweep: boolean;
   topLabel: string;
   bottomLabel: string;
+  staleCheck: boolean;
 };
 
 const numericKeys = new Set<keyof GaugeConfig>([
@@ -57,7 +58,7 @@ const numericKeys = new Set<keyof GaugeConfig>([
   "zone6Start", "zone6End",
   "zone7Start", "zone7End",
 ]);
-const boolKeys = new Set<keyof GaugeConfig>(["normalize", "fullSweep"]);
+const boolKeys = new Set<keyof GaugeConfig>(["normalize", "fullSweep", "staleCheck"]);
 
 function GaugePanelImpl({
   context,
@@ -75,7 +76,8 @@ function GaugePanelImpl({
     return base;
   });
 
-  const { getValue, containerRef, size } = useInstrumentPanel(context, [config.valuePath]);
+  const paths = [config.valuePath];
+  const { getValue, isStale, containerRef, size } = useInstrumentPanel(context, paths);
 
   const rawValue    = getValue(config.valuePath);
   const transformed = rawValue != null ? applyExpr(rawValue, config.expr) : undefined;
@@ -84,6 +86,8 @@ function GaugePanelImpl({
       ? config.normalizeOutputMin + ((transformed - config.min) / (config.max - config.min)) * (config.normalizeOutputMax - config.normalizeOutputMin)
       : transformed
     : undefined;
+
+  const stale = config.staleCheck && paths.every((p) => isStale(p));
 
   useEffect(() => {
     context.updatePanelSettingsEditor({
@@ -111,6 +115,7 @@ function GaugePanelImpl({
           defaultExpansionState: "expanded",
           fields: {
             valuePath: { label: "Value", input: "messagepath", value: config.valuePath },
+            staleCheck: { label: "Staleness Check", input: "boolean", value: config.staleCheck },
           },
         },
         data: {
@@ -178,6 +183,7 @@ function GaugePanelImpl({
         justifyContent: "center",
         width: "100%",
         height: "100%",
+        ...(stale ? STALE_STYLE : null),
       }}
     >
       <Gauge
@@ -242,6 +248,7 @@ const generalDefaults: GaugeConfig = {
   zone7Start: 0, zone7End: 0, zone7Color: "#ffffff",
   topLabel: "GAUGE",
   bottomLabel: "UNIT",
+  staleCheck: true,
 };
 
 export const initGaugePanel = createGaugePanel(generalDefaults, DEFAULT_FACE_URL);

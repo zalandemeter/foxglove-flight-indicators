@@ -32,6 +32,7 @@ const tachometerDefaults: GaugeConfig = {
   zone7Start: 0, zone7End: 0, zone7Color: "#ffffff",
   topLabel: "RPM",
   bottomLabel: "x 1000",
+  staleCheck: true,
 };
 
 export function initTachometerPanel(context: PanelExtensionContext): () => void {

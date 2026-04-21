@@ -32,6 +32,7 @@ const airspeedDefaults: GaugeConfig = {
   zone7Start: 0, zone7End: 0, zone7Color: "#ffffff",
   topLabel: "AIRSPEED",
   bottomLabel: "KM/H",
+  staleCheck: true,
 };
 
 export function initAirspeedPanel(context: PanelExtensionContext): () => void {

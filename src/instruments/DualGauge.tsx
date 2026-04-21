@@ -4,7 +4,7 @@ import { ensureCss } from "../BundledFlightIndicators";
 import dualGaugeMechanicsRaw from "../assets/instruments/dual_gauge_mechanics.svg?raw";
 import dualGaugeNeedleRaw from "../assets/instruments/dual_gauge_needle.svg?raw";
 import fiCircleRaw from "../assets/instruments/fi_circle.svg?raw";
-import { ColorZone, SubTickMode, drawTickLines, drawColorArcs } from "../gaugeShared";
+import { ColorZone, SubTickMode, drawTickLines, drawColorArcs } from "../instrumentShared";
 import { toDataUrl, mirrorSvgX } from "../utils";
 
 const FACE_URL     = toDataUrl(dualGaugeMechanicsRaw);

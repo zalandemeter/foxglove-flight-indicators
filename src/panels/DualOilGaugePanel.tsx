@@ -53,6 +53,7 @@ const oilDefaults: Config = {
   rightZone5Start: 100, rightZone5End: 120, rightZone5Color: "#ff0000",
   rightZone6Start: 0,   rightZone6End: 0,   rightZone6Color: "#ffffff",
   rightZone7Start: 0,   rightZone7End: 0,   rightZone7Color: "#ffffff",
+  staleCheck: true,
 };
 
 export function initDualOilGaugePanel(context: PanelExtensionContext): () => void {

@@ -3,7 +3,7 @@ import { ReactElement, useEffect, useRef } from "react";
 import { ensureCss } from "../BundledFlightIndicators";
 import fiCircleRaw from "../assets/instruments/fi_circle.svg?raw";
 import fiNeedleRaw from "../assets/instruments/fi_needle.svg?raw";
-import { ColorZone, SubTickMode, drawColorArcs, drawTickLines } from "../gaugeShared";
+import { ColorZone, SubTickMode, drawColorArcs, drawTickLines } from "../instrumentShared";
 import { toDataUrl } from "../utils";
 
 const NEEDLE_URL = toDataUrl(fiNeedleRaw);

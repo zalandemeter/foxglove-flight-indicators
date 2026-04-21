@@ -19,12 +19,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dual Fuel Gauge** panel — left/right tank quantity gauge; normalizes raw kg values (0–50) to 0–1 display range with E / ½ / F tick labels and red/yellow/green zones
 - **Dual Oil Gauge** panel — oil temperature (°C, left) and oil pressure (PSI, right) with custom tick positions and color zones matching typical limits
 - `gauge_mechanics.svg` — blank gauge face (dark circle) for all single-gauge panels; face markings are now fully dynamic
-- `gaugeShared.ts` — shared module extracting `drawTickLines`, `drawColorArcs`, `buildZones`, `makeZoneChildren`, expression helpers, and tick/zone validation from DualGauge into a common module used by both Gauge and DualGauge
+- `instrumentShared.ts` — shared module extracting `drawTickLines`, `drawColorArcs`, `buildZones`, `makeZoneChildren`, expression helpers (`applyExpr`, `exprError`), and tick/zone validation from DualGauge into a common module used by Gauge, DualGauge, and Heading Indicator
 
 #### Single Gauge configurable features
 - **Data**: optional expression transform (`x`-variable, powered by `expr-eval`), optional normalization with configurable input/output range, clamping with configurable min/max (clamp range defines display range)
 - **Display**: tick count (0–20), tick precision, custom tick positions/labels (csv), sub-ticks (None / Simple / Detailed), up to 7 color arc zones, full circle toggle (360° vs 320° sweep)
 - **Labels**: configurable top and bottom text
+
+#### Heading Indicator configurable features
+- **Input mode** select: Scalar angle or Quaternion (x, y, z, w as four independent message paths — no schema coupling, works with any field names)
+- **Unit**: Degrees or Radians (scalar mode); quaternion yaw is derived via `atan2(2(wz+xy), 1−2(y²+z²))`
+- **Expression transform** (`x`-variable, powered by `expr-eval`): subsumes offset, direction flip (`-x`), and reverse (`x + 180`) into one field. `x` is always degrees post-unit-conversion / post-yaw-extraction so expressions behave identically across modes
+- **Staleness Check** toggle (default on)
+
+#### Staleness detection (all panels)
+- `STALE_TIMEOUT_SEC` (1s) and `STALE_STYLE` (opacity + grayscale) exported from `useInstrumentPanel`
+- `isStale(path)` returns true when the path is empty/unparseable, no message has arrived, or the last `receiveTime` is >1s older than `renderState.currentTime` (falls back to `Date.now()` when playback time is unavailable)
+- Every panel's General section gains a "Staleness Check" boolean (default on)
+- For multi-topic panels, the fade only triggers when **all** subscribed paths are stale — if at least one is delivering fresh data, the panel stays vibrant
 
 #### Dual Gauge configurable features
 - **Data** sub-node per side: optional expression transform (`x`-variable, powered by `expr-eval`), optional normalization with configurable input and output range, always-on clamping with configurable min/max (clamp range also defines the display range)
@@ -40,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tachometer and Airspeed panels no longer use baked-in SVG face markings; all ticks, labels, and zones are now rendered dynamically and fully configurable through settings
 - SVG text labels ("RPM", "× 1000", "AIRSPEED", "KM / H") removed from `tachometer_mechanics.svg` and `speed_mechanics.svg`; replaced by dynamic top/bottom label settings
 - Color arc rendering now correctly handles arcs spanning >180° (large-arc flag) and full 360° arcs (two-semicircle fallback)
+- `gaugeShared.ts` renamed to `instrumentShared.ts` — module is no longer gauge-specific now that Heading Indicator consumes `applyExpr` / `exprError` from it; contents unchanged, four importers updated
+- `useInstrumentPanel` now tracks `receiveTime` per topic and watches `renderState.currentTime` to power staleness detection; return type additively exposes `isStale(path)`
 
 ### Fixed
 

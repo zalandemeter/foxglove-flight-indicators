@@ -9,8 +9,8 @@ import {
   parseTickLabels, parseTickPositions,
   exprError, applyExpr,
   tickLabelsError, tickPositionsError, bottomLabelError,
-} from "../gaugeShared";
-import { useInstrumentPanel } from "../useInstrumentPanel";
+} from "../instrumentShared";
+import { STALE_STYLE, useInstrumentPanel } from "../useInstrumentPanel";
 
 export type Config = {
   leftPath: string;
@@ -63,6 +63,7 @@ export type Config = {
   rightZone5Start: number; rightZone5End: number; rightZone5Color: string;
   rightZone6Start: number; rightZone6End: number; rightZone6Color: string;
   rightZone7Start: number; rightZone7End: number; rightZone7Color: string;
+  staleCheck: boolean;
 };
 
 const numericKeys = new Set<keyof Config>([
@@ -78,7 +79,7 @@ const numericKeys = new Set<keyof Config>([
   "rightZone3Start", "rightZone3End", "rightZone4Start", "rightZone4End", "rightZone5Start", "rightZone5End",
   "rightZone6Start", "rightZone6End", "rightZone7Start", "rightZone7End",
 ]);
-const boolKeys = new Set<keyof Config>(["leftNormalize", "rightNormalize", "leftLabelVertical", "rightLabelVertical"]);
+const boolKeys = new Set<keyof Config>(["leftNormalize", "rightNormalize", "leftLabelVertical", "rightLabelVertical", "staleCheck"]);
 
 function DualGaugePanelImpl({
   context,
@@ -92,10 +93,8 @@ function DualGaugePanelImpl({
     ...(context.initialState as Partial<Config>),
   }));
 
-  const { getValue, containerRef, size } = useInstrumentPanel(context, [
-    config.leftPath,
-    config.rightPath,
-  ]);
+  const paths = [config.leftPath, config.rightPath];
+  const { getValue, isStale, containerRef, size } = useInstrumentPanel(context, paths);
 
   const leftRaw  = getValue(config.leftPath);
   const rightRaw = getValue(config.rightPath);
@@ -114,6 +113,8 @@ function DualGaugePanelImpl({
       ? config.rightNormalizeOutputMin + ((rightTransformed - config.rightMin) / (config.rightMax - config.rightMin)) * (config.rightNormalizeOutputMax - config.rightNormalizeOutputMin)
       : rightTransformed
     : undefined;
+
+  const stale = config.staleCheck && paths.every((p) => isStale(p));
 
   useEffect(() => {
     context.updatePanelSettingsEditor({
@@ -142,6 +143,7 @@ function DualGaugePanelImpl({
           fields: {
             leftPath:  { label: "Left topic",  input: "messagepath", value: config.leftPath },
             rightPath: { label: "Right topic", input: "messagepath", value: config.rightPath },
+            staleCheck: { label: "Staleness Check", input: "boolean", value: config.staleCheck },
           },
         },
         left: {
@@ -278,6 +280,7 @@ function DualGaugePanelImpl({
         justifyContent: "center",
         width: "100%",
         height: "100%",
+        ...(stale ? STALE_STYLE : null),
       }}
     >
       <DualGauge
@@ -380,6 +383,7 @@ const generalDefaults: Config = {
   rightZone5Start: 0, rightZone5End: 0, rightZone5Color: "#ffffff",
   rightZone6Start: 0, rightZone6End: 0, rightZone6Color: "#ffffff",
   rightZone7Start: 0, rightZone7End: 0, rightZone7Color: "#ffffff",
+  staleCheck: true,
 };
 
 export const initDualGaugePanel = createDualGaugePanel(generalDefaults);
